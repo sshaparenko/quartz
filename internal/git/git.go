@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -88,18 +89,30 @@ func obsolutePath(path string) (string, error) {
 // checkVault cheks if directory specified by path
 // is an Obsidian vault
 func checkVault(path string) error {
-	_, err := os.Open(path)
+	path = filepath.Clean(path)
+	f, err := os.Open(path)
+	defer func() {
+		_ = f.Close()
+	}()
+
 	if err != nil {
 		return errors.New("in git.checkVault: specified path is not an obsidian vault")
 	}
+
 	return nil
 }
 
-func checkRepo(path string) error {
-	_, err := os.Open(path + "/.git/info")
+func checkRepo(path string) (err error) {
+	path = filepath.Join(filepath.Clean(path), "/.git/info")
+	f, err := os.Open(path)
+	defer func() {
+		_ = f.Close()
+	}()
+
 	if err != nil {
 		return nil
 	}
+
 	return ErrInitializedGit
 }
 
